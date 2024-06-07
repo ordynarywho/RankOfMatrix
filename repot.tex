@@ -1,0 +1,170 @@
+%% -*- coding: utf-8 -*-
+\documentclass[12pt,a4paper]{scrartcl} 
+\usepackage[utf8]{inputenc}
+\usepackage[english,russian]{babel}
+\usepackage{indentfirst}
+\usepackage{misccorr}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\documentclass{article}
+\usepackage[T2A]{fontenc}
+\usepackage{amsmath}
+\usepackage{geometry}
+
+\begin{document}
+	\begin{titlepage}
+		\begin{center}
+			\largeМИНИСТЕРСТВО НАУКИ И ВЫСШЕГО ОБРАЗОВАНИЯ РОССИЙСКОЙ ФЕДЕРАЦИИ
+			Федеральное государственное бюджетное образовательное учреждение высшего образования
+			
+			\textbf{АДЫГЕЙСКИЙ ГОСУДАРСТВЕННЫЙ УНИВЕРСИТЕТ}
+			\vspace{0.25cm}
+			
+			Инженерно-физический факультет
+			
+			Кафедра автоматизированных систем обработки информации и управления
+			\vfill
+
+			\vfill
+			
+			\textsc{Отчет по практике}\\[5mm]
+			
+			{\LARGE Программаная реализация численного метода \textit{Найти ранг матрицы.}}
+			\bigskip
+			
+			1 курс, группа 1ИВТ АСОИУ
+		\end{center}
+		\vfill
+		
+		\newlength{\ML}
+		\settowidth{\ML}{«\underline{\hspace{0.7cm}}» \underline{\hspace{2cm}}}
+		\hfill\begin{minipage}{0.5\textwidth}
+			Выполнил:\\
+			\underline{\hspace{\ML}} В.\,Р.~Хайрулин\\
+			«\underline{\hspace{0.7cm}}» \underline{\hspace{2cm}} 2024 г.
+		\end{minipage}%
+		\bigskip
+		
+		\hfill\begin{minipage}{0.5\textwidth}
+			Руководитель:\\
+			\underline{\hspace{\ML}} С.\,В.~Теплоухов\\
+			«\underline{\hspace{0.7cm}}» \underline{\hspace{2cm}} 2024 г.
+		\end{minipage}%
+		\vfill
+		
+		\begin{center}
+			Майкоп, 2024 г.
+		\end{center}
+	\end{titlepage}
+
+\section*{Введение}
+В данной работе реализован алгоритм нахождения ранга матрицы с использованием метода Гаусса. Программа написана на языке C++ и использует динамические массивы для хранения матрицы.
+
+\section*{Описание кода}
+Программа состоит из следующих частей:
+\begin{enumerate}
+    \item Подключение необходимых библиотек.
+    \item Функция для вывода матрицы.
+    \item Функция для приведения матрицы к ступенчатому виду методом Гаусса.
+    \item Основная функция, в которой осуществляется ввод матрицы, вызов функций и вывод результатов.
+\end{enumerate}
+
+\subsection*{Подключение библиотек}
+Подключаются стандартные библиотеки для ввода-вывода, обработки исключений и манипуляции выводом:
+\begin{verbatim}
+#include <iostream>
+#include <iomanip>
+#include <stdexcept>
+using namespace std;
+\end{verbatim}
+
+\subsection*{Функция для вывода матрицы}
+Функция \texttt{printMatrix} выводит матрицу в консоль, красиво форматируя вывод:
+\begin{verbatim}
+void printMatrix(double** matrix, int rows, int cols) {
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
+            cout << setw(10) << matrix[i][j] << " ";
+        }
+        cout << endl;
+    }
+}
+\end{verbatim}
+
+\subsection*{Функция приведения к ступенчатому виду}
+Функция \texttt{gaussianElimination} реализует метод Гаусса и возвращает ранг матрицы:
+\begin{verbatim}
+int gaussianElimination(double** matrix, int rows, int cols) {
+    int rank = 0;
+    for (int col = 0; col < cols; ++col) {
+        int pivot = rank;
+        while (pivot < rows && matrix[pivot][col] == 0) {
+            ++pivot;
+        }
+        if (pivot == rows) {
+            continue;
+        }
+        if (pivot != rank) {
+            swap(matrix[rank], matrix[pivot]);
+        }
+        double pivotValue = matrix[rank][col];
+        if (pivotValue == 0) {
+            throw runtime_error("Pivot element is zero during normalization.");
+        }
+        for (int j = col; j < cols; ++j) {
+            matrix[rank][j] /= pivotValue;
+        }
+        for (int i = rank + 1; i < rows; ++i) {
+            double factor = matrix[i][col];
+            for (int j = col; j < cols; ++j) {
+                matrix[i][j] -= factor * matrix[rank][j];
+            }
+        }
+        ++rank;
+    }
+    return rank;
+}
+\end{verbatim}
+
+\subsection*{Основная функция}
+Основная функция организует ввод данных, вызов функций и вывод результатов:
+\begin{verbatim}
+int main() {
+    try {
+        int rows, cols;
+        cout << "Введите количество строк и столбцов матрицы: ";
+        cin >> rows >> cols;
+        if (rows <= 0 || cols <= 0) {
+            throw invalid_argument("Количество строк и столбцов должно быть положительным.");
+        }
+        double** matrix = new double*[rows];
+        for (int i = 0; i < rows; ++i) {
+            matrix[i] = new double[cols];
+        }
+        cout << "Введите элементы матрицы:\n";
+        for (int i = 0; i < rows; ++i) {
+            for (int j = 0; j < cols; ++j) {
+                if (!(cin >> matrix[i][j])) {
+                    throw runtime_error("Ошибка ввода. Пожалуйста, вводите только числовые значения.");
+                }
+            }
+        }
+        cout << "Исходная матрица:\n";
+        printMatrix(matrix, rows, cols);
+        int rank = gaussianElimination(matrix, rows, cols);
+        cout << "Матрица после приведения к ступенчатому виду:\n";
+        printMatrix(matrix, rows, cols);
+        cout << "Ранг матрицы: " << rank << endl;
+        for (int i = 0; i < rows; ++i) {
+            delete[] matrix[i];
+        }
+        delete[] matrix;
+    } catch (const exception& e) {
+        cerr << "Ошибка: " << e.what() << endl;
+        return 1;
+    }
+    return 0;
+}
+\end{verbatim}
+
+\end{document}
